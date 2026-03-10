@@ -1104,6 +1104,10 @@ private:
     ModeTurtle mode_turtle;
 #endif
 
+    ModeMaster mode_master;
+    ModeSlave mode_slave;
+    ModeDocking mode_docking;
+
     // mode.cpp
     Mode *mode_from_mode_num(const Mode::Number mode);
     void exit_mode(Mode *&old_flightmode, Mode *&new_flightmode);

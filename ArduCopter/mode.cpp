@@ -152,6 +152,13 @@ Mode *Copter::mode_from_mode_num(const Mode::Number mode)
             return &mode_turtle;
 #endif
 
+        case Mode::Number::MASTER:
+            return &mode_master;
+        case Mode::Number::SLAVE:
+            return &mode_slave;
+        case Mode::Number::DOCKING:
+            return &mode_docking;
+
         default:
             break;
     }

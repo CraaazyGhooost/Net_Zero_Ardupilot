@@ -101,6 +101,9 @@ public:
         AUTOROTATE =   26,  // Autonomous autorotation
         AUTO_RTL =     27,  // Auto RTL, this is not a true mode, AUTO will report as this mode if entered to perform a DO_LAND_START Landing sequence
         TURTLE =       28,  // Flip over after crash
+        MASTER =       29,  // Master mode for custom scripting, this is not a true mode, it is used as a base for custom modes that are registered with the register_custom_mode function
+        SLAVE =      30,  // Slave mode for custom scripting, this is not a true mode, it is used as a base for custom modes that are registered with the register_custom_mode function
+        DOCKING =    31,  // Docking mode for autonomous docking maneuvers
 
         // Mode number 30 reserved for "offboard" for external/lua control.
 
@@ -2152,3 +2155,87 @@ private:
 
 };
 #endif
+
+class ModeMaster : public Mode {
+
+public:
+    // inherit constructor
+    using Mode::Mode;
+    Number mode_number() const override { return Number::MASTER; }
+
+    virtual void run() override;
+
+    bool requires_position() const override { return false; }
+    bool has_manual_throttle() const override { return true; }
+    bool allows_arming(AP_Arming::Method method) const override { return true; };
+    bool is_autopilot() const override { return false; }
+    bool allows_save_trim() const override { return true; }
+    bool allows_auto_trim() const override { return true; }
+    bool allows_autotune() const override { return true; }
+    bool allows_flip() const override { return true; }
+    bool allows_entry_in_rc_failsafe() const override { return false; }
+
+protected:
+
+    const char *name() const override { return "Master"; }
+    const char *name4() const override { return "MSTR"; }
+
+private:
+
+};
+
+class ModeSlave : public Mode {
+
+public:
+    // inherit constructor
+    using Mode::Mode;
+    Number mode_number() const override { return Number::SLAVE; }
+
+    virtual void run() override;
+
+    bool requires_position() const override { return false; }
+    bool has_manual_throttle() const override { return true; }
+    bool allows_arming(AP_Arming::Method method) const override { return true; };
+    bool is_autopilot() const override { return false; }
+    bool allows_save_trim() const override { return true; }
+    bool allows_auto_trim() const override { return true; }
+    bool allows_autotune() const override { return true; }
+    bool allows_flip() const override { return true; }
+    bool allows_entry_in_rc_failsafe() const override { return false; }
+
+protected:
+
+    const char *name() const override { return "SLAVE"; }
+    const char *name4() const override { return "SLVE"; }
+
+private:
+
+};
+
+class ModeDocking : public Mode {
+
+public:
+    // inherit constructor
+    using Mode::Mode;
+    Number mode_number() const override { return Number::DOCKING; }
+
+    virtual void run() override;
+
+    bool requires_position() const override { return false; }
+    bool has_manual_throttle() const override { return true; }
+    bool allows_arming(AP_Arming::Method method) const override { return true; };
+    bool is_autopilot() const override { return false; }
+    bool allows_save_trim() const override { return true; }
+    bool allows_auto_trim() const override { return true; }
+    bool allows_autotune() const override { return true; }
+    bool allows_flip() const override { return true; }
+    bool allows_entry_in_rc_failsafe() const override { return false; }
+
+protected:
+
+    const char *name() const override { return "DOCKING"; }
+    const char *name4() const override { return "DOCK"; }
+
+private:
+
+};

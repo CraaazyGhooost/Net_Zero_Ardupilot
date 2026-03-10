@@ -1215,6 +1215,8 @@ void AP_CRSF_Telem::calc_device_ping(uint8_t destination) {
 
 // send a command response
 void AP_CRSF_Telem::calc_command_response() {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-overflow"
     _telem.ext.command.destination = AP_CRSF_Protocol::CRSF_ADDRESS_CRSF_RECEIVER;
     _telem.ext.command.origin = AP_CRSF_Protocol::CRSF_ADDRESS_FLIGHT_CONTROLLER;
     _telem.ext.command.command_id = AP_CRSF_Protocol::CRSF_COMMAND_GENERAL;
@@ -1222,6 +1224,7 @@ void AP_CRSF_Telem::calc_command_response() {
     _telem.ext.command.payload[1] = _baud_rate_request.port_id;
     _telem.ext.command.payload[2] = _baud_rate_request.valid;
     _telem_type = AP_CRSF_Protocol::CRSF_FRAMETYPE_COMMAND;
+#pragma GCC diagnostic pop
 
     // calculate command crc
     uint8_t len = 6;
@@ -1242,11 +1245,14 @@ void AP_CRSF_Telem::calc_command_response() {
 
 // send a command response
 void AP_CRSF_Telem::calc_bind() {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-overflow"
     _telem.ext.command.destination = AP_CRSF_Protocol::CRSF_ADDRESS_CRSF_RECEIVER;
     _telem.ext.command.origin = AP_CRSF_Protocol::CRSF_ADDRESS_FLIGHT_CONTROLLER;
     _telem.ext.command.command_id = AP_CRSF_Protocol::CRSF_COMMAND_RX;
     _telem.ext.command.payload[0] = AP_CRSF_Protocol::CRSF_COMMAND_RX_BIND;
     _telem_type = AP_CRSF_Protocol::CRSF_FRAMETYPE_COMMAND;
+#pragma GCC diagnostic pop
 
     // calculate command crc
     uint8_t len = 4;

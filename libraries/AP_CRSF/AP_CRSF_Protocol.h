@@ -74,7 +74,7 @@ public:
         CRSF_COMMAND_ACK = 0xFF,
     };
 
-    enum DeviceAddress {
+    enum DeviceAddress : uint8_t {
         CRSF_ADDRESS_BROADCAST = 0x00,
         CRSF_ADDRESS_USB = 0x10,
         CRSF_ADDRESS_TBS_CORE_PNP_PRO = 0x80,
