@@ -1206,10 +1206,50 @@ void GCS_MAVLINK_Copter::handle_message_set_position_target_global_int(const mav
 }
 #endif  // MODE_GUIDED_ENABLED
 
+void GCS_MAVLINK_Copter::handle_message_net_zero_command(const mavlink_message_t &msg){
+    mavlink_net_zero_mavlink_t packet;
+    mavlink_msg_net_zero_mavlink_decode(&msg, &packet);
+    uint8_t sender_id = msg.sysid;
+    hal.console->printf("Received net zero command with param1: %d from id %u\r\n", packet.test1, sender_id);
+    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Received net zero command with param2: %d from id %u", packet.test2, sender_id);
+
+    int i = 0;
+    switch(packet.test1){
+        case 1: //receive the request from the (maybe) father, now can send the ack to the sender
+            // TODO now should send ack in order to let the father update its tree
+            // and this drone into slave mode 
+            hal.console->printf("Received request from chan %u\r\n", chan);
+            mavlink_msg_net_zero_mavlink_send(
+                gcs().chan(chan)->get_chan(), 2, 0
+            );
+            copter.set_mode(Mode::Number::SLAVE, ModeReason::GCS_COMMAND);
+            break;
+        case 2: //receive the ack from the new son, now can update the tree
+            hal.console->printf("Received ack from chan %u\r\n", chan);
+            hal.console->printf("get son %u\r\n", sender_id);
+            for(i = 0; i < 4; i++){
+                if(net_zero_router.backup_son[i] == chan){
+                    net_zero_router.add_son_uart(net_zero_router.backup_dir[i], chan, sender_id);
+                    break;
+                }
+            }
+            //TODO
+            break;
+        default:
+            break;
+    }
+}
+
 void GCS_MAVLINK_Copter::handle_message(const mavlink_message_t &msg)
 {
+    hal.console->printf("Received message with id %u from id %u\r\n", msg.msgid, msg.sysid);
+    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Received message with id %u from id %u", msg.msgid, msg.sysid);
 
     switch (msg.msgid) {
+    case MAVLINK_MSG_ID_NET_ZERO_MAVLINK:
+        handle_message_net_zero_command(msg);
+        break;
+
 #if MODE_GUIDED_ENABLED
     case MAVLINK_MSG_ID_SET_ATTITUDE_TARGET:
         handle_message_set_attitude_target(msg);

@@ -1203,6 +1203,7 @@ ap_message GCS_MAVLINK::mavlink_id_to_ap_message_id(const uint32_t mavlink_id) c
 #if AP_MAVLINK_MSG_FLIGHT_INFORMATION_ENABLED
         { MAVLINK_MSG_ID_FLIGHT_INFORMATION, MSG_FLIGHT_INFORMATION},
 #endif
+        { MAVLINK_MSG_ID_NET_ZERO_MAVLINK, MSG_NET_ZERO_MAVLINK}
     };
 
     for (uint8_t i=0; i<ARRAY_SIZE(map); i++) {
@@ -6165,6 +6166,10 @@ void GCS_MAVLINK::send_gimbal_manager_status() const
 }
 #endif
 
+void GCS_MAVLINK::send_net_zero_mavlink() const{
+    mavlink_msg_net_zero_mavlink_send(chan, 1, 2);
+}
+
 void GCS_MAVLINK::send_set_position_target_global_int(uint8_t target_system, uint8_t target_component, const Location& loc)
 {
 
@@ -6397,6 +6402,8 @@ bool GCS_MAVLINK::try_send_message(const enum ap_message id)
     bool ret = true;
 
     switch(id) {
+    case MSG_NET_ZERO_MAVLINK:
+        break;
 
 #if AP_AHRS_ENABLED
     case MSG_ATTITUDE:

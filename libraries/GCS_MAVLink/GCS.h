@@ -390,6 +390,9 @@ public:
     void send_set_position_target_global_int(uint8_t target_system, uint8_t target_component, const Location& loc);
     void send_rpm() const;
     void send_generator_status() const;
+
+    void send_net_zero_mavlink() const;
+
 #if AP_WINCH_ENABLED
     virtual void send_winch_status() const {};
 #endif

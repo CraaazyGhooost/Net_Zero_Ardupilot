@@ -178,6 +178,8 @@
 #endif
 #include "mode.h"
 
+#include "net_zero_protocol.h"
+
 class Copter : public AP_Vehicle {
 public:
     friend class GCS_MAVLINK_Copter;
@@ -662,6 +664,8 @@ private:
     void set_failsafe_radio(bool b);
     void set_failsafe_gcs(bool b);
     void update_using_interlock();
+
+    void update_router();
 
     // Copter.cpp
     void get_scheduler_tasks(const AP_Scheduler::Task *&tasks,

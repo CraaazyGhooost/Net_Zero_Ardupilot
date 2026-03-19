@@ -1466,6 +1466,11 @@ MAV_MISSION_RESULT AP_Mission::mavlink_int_to_mission_cmd(const mavlink_mission_
     case MAV_CMD_VIDEO_STOP_CAPTURE:
         cmd.content.video_stop_capture.video_stream_id = packet.param1;
         break;
+    
+    // case NET_ZERO_MAVLINK:
+    //     cmd.content.net_zero.num1 = packet.param1;
+    //     cmd.content.net_zero.num2 = packet.param2;
+    //     break;
 
     default:
         // unrecognised command
@@ -1988,6 +1993,10 @@ bool AP_Mission::mission_cmd_to_mavlink_int(const AP_Mission::Mission_Command& c
     case MAV_CMD_VIDEO_STOP_CAPTURE:
         packet.param1 = cmd.content.video_stop_capture.video_stream_id;
         break;
+    
+    // case NET_ZERO_MAVLINK:
+    //     packet.param1 = cmd.content.net_zero.num1;
+    //     packet.param2 = cmd.content.net_zero.num2;
 
     default:
         // unrecognised command

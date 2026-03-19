@@ -302,6 +302,11 @@ public:
         uint8_t video_stream_id;
     };
 
+    struct PACKED net_zero_command {
+        uint8_t num1;
+        uint8_t num2;
+    };
+
     union Content {
         // jump structure
         Jump_Command jump;
@@ -400,6 +405,9 @@ public:
 
         // MAV_CMD_VIDEO_STOP_CAPTURE support
         video_stop_capture_Command video_stop_capture;
+
+        // something
+        net_zero_command net_zero;
 
         // location
         Location location{};      // Waypoint location
