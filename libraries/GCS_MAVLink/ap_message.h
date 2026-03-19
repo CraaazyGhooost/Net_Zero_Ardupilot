@@ -116,5 +116,6 @@ enum ap_message : uint8_t {
     MSG_FLIGHT_INFORMATION             = 100,
 #endif
     MSG_NET_ZERO_MAVLINK                 = 101,
+    MSG_SUB_DRONE_CONTROL                 = 102,
     MSG_LAST // MSG_LAST must be the last entry in this enum
 };

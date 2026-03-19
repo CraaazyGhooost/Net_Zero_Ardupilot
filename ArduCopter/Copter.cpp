@@ -274,29 +274,13 @@ void Copter::update_router()
             continue;   // 跳过无效值
         }
 
-        // 获取目标串口的 UARTDriver 对象
-        AP_HAL::UARTDriver *target_uart = hal.serial(maybe_new_son);
-        if (target_uart == nullptr) {
-            // 串口编号超出范围（例如硬件上没有该串口）
+        uint8_t chan = get_mavlink_chan_by_uart(maybe_new_son);
+        if (chan == 0xFF) {
+            // 无效的 UART ID，可能是错误的输入或未配置的 UART
             continue;
         }
-        // 遍历所有 MAVLink 通道，找到与 target_uart 匹配的那个
-        GCS_MAVLINK *target_link = nullptr;
-        for (uint8_t j = 0; j < gcs().num_gcs(); j++) {
-            GCS_MAVLINK *link = gcs().chan(j);
-            if (link != nullptr && link->get_uart() == target_uart) {
-                target_link = link;
-                break;
-            }
-        }
-        // 如果找到了对应的 MAVLink 通道，发送消息
-        if (target_link != nullptr) {
-            mavlink_msg_net_zero_mavlink_send(target_link->get_chan(), 1, 0);
-        } else {
-            // 可选：目标串口虽然是有效的，但未配置为 MAVLink 协议
-            // 可以打印调试信息或忽略
-            // hal.console->printf("Serial %d is not a MAVLink channel\n", maybe_new_son);
-        }
+        // hal.console->printf("Updating son %d on mavlink channel %d\r\n", maybe_new_son, chan);
+        mavlink_msg_net_zero_mavlink_send((mavlink_channel_t)chan, 1, 0);
     }
 }
 

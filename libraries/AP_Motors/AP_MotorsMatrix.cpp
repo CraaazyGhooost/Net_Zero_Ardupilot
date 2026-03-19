@@ -16,6 +16,9 @@
 #include <AP_HAL/AP_HAL.h>
 #include "AP_MotorsMatrix.h"
 #include <AP_Vehicle/AP_Vehicle_Type.h>
+#include <AP_Vehicle/AP_Vehicle.h>
+#include <GCS_MAVLink/GCS.h>
+#include "../../ArduCopter/net_zero_protocol.h"
 
 extern const AP_HAL::HAL& hal;
 
@@ -174,12 +177,47 @@ void AP_MotorsMatrix::output_to_motors()
             break;
     }
 
-    // convert output to PWM and send to each motor
+    int16_t control_val[AP_MOTORS_MAX_NUM_MOTORS];
     for (i = 0; i < AP_MOTORS_MAX_NUM_MOTORS; i++) {
         if (motor_enabled[i]) {
-            rc_write(i, output_to_pwm(_actuator[i]));
+            control_val[i] = output_to_pwm(_actuator[i]);
         }
     }
+    //send to son.
+    for(i = 0; i < net_zero_router.son_count; i++){
+        connection conn = net_zero_router.son[i];
+        if (conn.valid) {
+            //now send the full sub_tree
+            hal.console->printf("Sending to son %d on mavlink channel %d\r\n", conn.target_id, conn.mavlink_chan);
+            mavlink_msg_sub_drone_control_send((mavlink_channel_t)(conn.mavlink_chan), conn.target_id, \
+                control_val[0], control_val[1], control_val[2], control_val[3]);
+        }
+    }
+
+    // get the flight mode now check if it is mode slave
+    const uint8_t mode_number = AP::vehicle()->get_mode();
+
+    // if in SLAVE mode, do slave-specific handling
+    if (mode_number == 31) {
+        // TODO: add SLAVE mode behavior here 
+        // take the sub drone cache to update the motor outputs
+        hal.console->printf("SLAVE mode.\r\n");
+        // 获取当前的 MAVLink 系统 ID
+        uint8_t my_sysid = gcs().sysid_this_mav();
+        for (i = 0; i < AP_MOTORS_MAX_NUM_MOTORS; i++) {
+            if (motor_enabled[i] && i < 4) { // ensure we don't go out of bounds of SubDroneCache
+                rc_write(i, SubDroneCache[my_sysid][i]);
+            }
+        }
+    }else{//normal, use current motor outputs
+        // convert output to PWM and send to each motor
+        for (i = 0; i < AP_MOTORS_MAX_NUM_MOTORS; i++) {
+            if (motor_enabled[i]) {
+                rc_write(i, control_val[i]);
+            }
+        }
+    }
+
 }
 
 // get_motor_mask - returns a bitmask of which outputs are being used for motors (1 means being used)

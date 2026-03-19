@@ -291,6 +291,7 @@ static const ap_message STREAM_RC_CHANNELS_msgs[] = {
 
 static const ap_message STREAM_EXTRA1_msgs[] = {
     MSG_NET_ZERO_MAVLINK,
+    MSG_SUB_DRONE_CONTROL,
 #if AP_AHRS_ENABLED
     MSG_ATTITUDE,
 #endif  // AP_AHRS_ENABLED

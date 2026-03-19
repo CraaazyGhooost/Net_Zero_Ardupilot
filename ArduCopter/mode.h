@@ -102,8 +102,8 @@ public:
         AUTO_RTL =     27,  // Auto RTL, this is not a true mode, AUTO will report as this mode if entered to perform a DO_LAND_START Landing sequence
         TURTLE =       28,  // Flip over after crash
         MASTER =       29,  // Master mode for custom scripting, this is not a true mode, it is used as a base for custom modes that are registered with the register_custom_mode function
-        SLAVE =      30,  // Slave mode for custom scripting, this is not a true mode, it is used as a base for custom modes that are registered with the register_custom_mode function
-        DOCKING =    31,  // Docking mode for autonomous docking maneuvers
+        SLAVE =      31,  // Slave mode for custom scripting, this is not a true mode, it is used as a base for custom modes that are registered with the register_custom_mode function
+        DOCKING =    32,  // Docking mode for autonomous docking maneuvers
 
         // Mode number 30 reserved for "offboard" for external/lua control.
 

@@ -4,6 +4,8 @@
 #include <AP_RPM/AP_RPM_config.h>
 #include <AP_EFI/AP_EFI_config.h>
 
+#include "net_zero_protocol.h"
+
 MAV_TYPE GCS_Copter::frame_type() const
 {
     /*
@@ -1239,15 +1241,29 @@ void GCS_MAVLINK_Copter::handle_message_net_zero_command(const mavlink_message_t
             break;
     }
 }
+void GCS_MAVLINK_Copter::handle_message_sub_drone_control(const mavlink_message_t &msg){
+    mavlink_sub_drone_control_t packet;
+    mavlink_msg_sub_drone_control_decode(&msg, &packet);
+    uint8_t sender_id = msg.sysid;
+    hal.console->printf("Sub drone control signal from %u to %u\r\n", sender_id, packet.target);
+    // GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Received sub drone control signal from id %u", sender_id);
+    SubDroneCache[packet.target][0] = packet.motor1;
+    SubDroneCache[packet.target][1] = packet.motor2;
+    SubDroneCache[packet.target][2] = packet.motor3;
+    SubDroneCache[packet.target][3] = packet.motor4;
+}
 
 void GCS_MAVLINK_Copter::handle_message(const mavlink_message_t &msg)
 {
     hal.console->printf("Received message with id %u from id %u\r\n", msg.msgid, msg.sysid);
-    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Received message with id %u from id %u", msg.msgid, msg.sysid);
+    // GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Received message with id %u from id %u", msg.msgid, msg.sysid);
 
     switch (msg.msgid) {
     case MAVLINK_MSG_ID_NET_ZERO_MAVLINK:
         handle_message_net_zero_command(msg);
+        break;
+    case MAVLINK_MSG_ID_MANUAL_CONTROL:
+        handle_message_sub_drone_control(msg);
         break;
 
 #if MODE_GUIDED_ENABLED

@@ -3,6 +3,7 @@
 
 #include <AP_HAL/AP_HAL.h>
 #include <AP_SerialManager/AP_SerialManager.h>
+#include <GCS_MAVLink/GCS.h>
 #include <stdint.h>
 
 enum direc{
@@ -16,8 +17,9 @@ public:
     direc dir;
     uint8_t target_id;
     uint8_t serial_id;
-    connection() : valid(false), dir(front), target_id(0xFF), serial_id(0xFF) {} // default constructor with invalid UART
-    connection(bool v, direc d, uint8_t t_id, uint8_t s_id): valid(v), dir(d), target_id(t_id), serial_id(s_id) {}
+    uint8_t mavlink_chan; // the MAVLink channel associated with this connection, if valid
+    connection() : valid(false), dir(front), target_id(0xFF), serial_id(0xFF), mavlink_chan(0xFF) {} // default constructor with invalid UART
+    connection(bool v, direc d, uint8_t t_id, uint8_t s_id, uint8_t m_ch): valid(v), dir(d), target_id(t_id), serial_id(s_id), mavlink_chan(m_ch) {}
 };
 
 
@@ -45,5 +47,9 @@ public:
 };
 
 extern NetZeroRouter net_zero_router; // global instance
+
+extern uint16_t SubDroneCache[10][4]; // global cache for sub-drone data, 10 sets of 4 data points each
+
+uint8_t get_mavlink_chan_by_uart(uint8_t uart_id); // helper function to get mavlink channel by uart id
 
 #endif

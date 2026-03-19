@@ -392,6 +392,7 @@ public:
     void send_generator_status() const;
 
     void send_net_zero_mavlink() const;
+    void send_sub_drone_control(uint8_t target, uint16_t motor1, uint16_t motor2, uint16_t motor3, uint16_t motor4) const;
 
 #if AP_WINCH_ENABLED
     virtual void send_winch_status() const {};
