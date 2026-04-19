@@ -188,9 +188,12 @@ void AP_MotorsMatrix::output_to_motors()
         connection conn = net_zero_router.son[i];
         if (conn.valid) {
             //now send the full sub_tree
-            hal.console->printf("Sending to son %d on mavlink channel %d\r\n", conn.target_id, conn.mavlink_chan);
             mavlink_msg_sub_drone_control_send((mavlink_channel_t)(conn.mavlink_chan), conn.target_id, \
                 control_val[0], control_val[1], control_val[2], control_val[3]);
+            GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "%hd, %hd, %hd, %hd", control_val[0], control_val[1], control_val[2], control_val[3]);
+
+            // mavlink_msg_sub_drone_control_send((mavlink_channel_t)(conn.mavlink_chan), conn.target_id, \
+            //     1, 2, 3, 4);
         }
     }
 
@@ -201,8 +204,6 @@ void AP_MotorsMatrix::output_to_motors()
     if (mode_number == 31) {
         // TODO: add SLAVE mode behavior here 
         // take the sub drone cache to update the motor outputs
-        hal.console->printf("SLAVE mode.\r\n");
-        // 获取当前的 MAVLink 系统 ID
         uint8_t my_sysid = gcs().sysid_this_mav();
         for (i = 0; i < AP_MOTORS_MAX_NUM_MOTORS; i++) {
             if (motor_enabled[i] && i < 4) { // ensure we don't go out of bounds of SubDroneCache

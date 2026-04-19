@@ -1212,8 +1212,7 @@ void GCS_MAVLINK_Copter::handle_message_net_zero_command(const mavlink_message_t
     mavlink_net_zero_mavlink_t packet;
     mavlink_msg_net_zero_mavlink_decode(&msg, &packet);
     uint8_t sender_id = msg.sysid;
-    hal.console->printf("Received net zero command with param1: %d from id %u\r\n", packet.test1, sender_id);
-    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Received net zero command with param2: %d from id %u", packet.test2, sender_id);
+    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Received net zero command with param1: %d from id %u", packet.test1, sender_id);
 
     int i = 0;
     switch(packet.test1){
@@ -1224,18 +1223,30 @@ void GCS_MAVLINK_Copter::handle_message_net_zero_command(const mavlink_message_t
             mavlink_msg_net_zero_mavlink_send(
                 gcs().chan(chan)->get_chan(), 2, 0
             );
-            copter.set_mode(Mode::Number::SLAVE, ModeReason::GCS_COMMAND);
+            if(0 == copter.set_mode(Mode::Number::SLAVE, ModeReason::GCS_COMMAND)){
+                GCS_SEND_TEXT(MAV_SEVERITY_WARNING,"change mode failed!!!");
+            }
             break;
         case 2: //receive the ack from the new son, now can update the tree
-            hal.console->printf("Received ack from chan %u\r\n", chan);
-            hal.console->printf("get son %u\r\n", sender_id);
-            for(i = 0; i < 4; i++){
-                if(net_zero_router.backup_son[i] == chan){
-                    net_zero_router.add_son_uart(net_zero_router.backup_dir[i], chan, sender_id);
-                    break;
-                }
-            }
+            GCS_SEND_TEXT(MAV_SEVERITY_WARNING,"Received ack from chan %u\r\n", chan);
+            GCS_SEND_TEXT(MAV_SEVERITY_WARNING,"get son %u\r\n", sender_id);
+            net_zero_router.add_son_uart(net_zero_router.backup_dir[i], 4, sender_id);
+            // for(i = 0; i < 4; i++){
+            //     if(net_zero_router.backup_son[i] == chan){
+            //         net_zero_router.add_son_uart(net_zero_router.backup_dir[i], chan, sender_id);
+            //         break;
+            //     }
+            // }
             //TODO
+            break;
+        case 10:
+            if(packet.test2 == 10){
+                GCS_SEND_TEXT(MAV_SEVERITY_WARNING,"receive cmd to arm!!!");
+                AP::arming().arm(AP_Arming::Method::MAVLINK);
+            }else if(packet.test2 == 20){
+                GCS_SEND_TEXT(MAV_SEVERITY_WARNING,"receive cmd to DISARM!!!");
+                AP::arming().disarm(AP_Arming::Method::MAVLINK);
+            }
             break;
         default:
             break;
@@ -1244,9 +1255,7 @@ void GCS_MAVLINK_Copter::handle_message_net_zero_command(const mavlink_message_t
 void GCS_MAVLINK_Copter::handle_message_sub_drone_control(const mavlink_message_t &msg){
     mavlink_sub_drone_control_t packet;
     mavlink_msg_sub_drone_control_decode(&msg, &packet);
-    uint8_t sender_id = msg.sysid;
-    hal.console->printf("Sub drone control signal from %u to %u\r\n", sender_id, packet.target);
-    // GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Received sub drone control signal from id %u", sender_id);
+    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Sub drone control to %d: %hd,%hd,%hd,%hd", (int)(packet.target), packet.motor1, packet.motor2, packet.motor3, packet.motor4);
     SubDroneCache[packet.target][0] = packet.motor1;
     SubDroneCache[packet.target][1] = packet.motor2;
     SubDroneCache[packet.target][2] = packet.motor3;
@@ -1255,14 +1264,14 @@ void GCS_MAVLINK_Copter::handle_message_sub_drone_control(const mavlink_message_
 
 void GCS_MAVLINK_Copter::handle_message(const mavlink_message_t &msg)
 {
-    hal.console->printf("Received message with id %u from id %u\r\n", msg.msgid, msg.sysid);
-    // GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Received message with id %u from id %u", msg.msgid, msg.sysid);
+    // hal.console->printf("Received message with id %u from id %u\r\n", msg.msgid, msg.sysid);
+    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Received message with id %u from id %u", msg.msgid, msg.sysid);
 
     switch (msg.msgid) {
     case MAVLINK_MSG_ID_NET_ZERO_MAVLINK:
         handle_message_net_zero_command(msg);
         break;
-    case MAVLINK_MSG_ID_MANUAL_CONTROL:
+    case MAVLINK_MSG_ID_SUB_DRONE_CONTROL:
         handle_message_sub_drone_control(msg);
         break;
 

@@ -5236,6 +5236,9 @@ MAV_RESULT GCS_MAVLINK::handle_command_component_arm_disarm(const mavlink_comman
         // run pre_arm_checks and arm_checks and display failures
         const bool do_arming_checks = !is_equal(packet.param2,magic_force_arm_value) && !is_equal(packet.param2,magic_force_arm_disarm_value);
         if (AP::arming().arm(AP_Arming::Method::MAVLINK, do_arming_checks)) {
+            //net_zero: send message to let the sons to arm
+            mavlink_msg_net_zero_mavlink_send((mavlink_channel_t)2, 10, 10);
+
             return MAV_RESULT_ACCEPTED;
         }
         return MAV_RESULT_FAILED;
@@ -5247,6 +5250,9 @@ MAV_RESULT GCS_MAVLINK::handle_command_component_arm_disarm(const mavlink_comman
         const bool forced = is_equal(packet.param2, magic_force_arm_disarm_value);
         // note disarm()'s second parameter is "do_disarm_checks"
         if (AP::arming().disarm(AP_Arming::Method::MAVLINK, !forced)) {
+            //net_zero: send message to let the sons to disarm
+            mavlink_msg_net_zero_mavlink_send((mavlink_channel_t)2, 10, 20);
+
             return MAV_RESULT_ACCEPTED;
         }
         return MAV_RESULT_FAILED;

@@ -149,13 +149,13 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
     FAST_TASK(Log_Video_Stabilisation),
 #endif
 
-    SCHED_TASK(update_router,         10,     5,  10),
     SCHED_TASK(rc_loop,              250,    130,  3),
     SCHED_TASK(throttle_loop,         50,     75,  6),
 #if AP_FENCE_ENABLED
     SCHED_TASK(fence_check,           25,    100,  7),
 #endif
     SCHED_TASK_CLASS(AP_GPS,               &copter.gps,                 update,          50, 200,   9),
+    SCHED_TASK(update_router,         10,     100,  10),
 #if AP_OPTICALFLOW_ENABLED
     SCHED_TASK_CLASS(AP_OpticalFlow,          &copter.optflow,             update,         200, 160,  12),
 #endif
@@ -268,18 +268,23 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
 
 void Copter::update_router()
 {
+    // 获取当前的 MAVLink 系统 ID
+    uint8_t my_sysid = gcs().sysid_this_mav();
+    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Now flight mode: %d", AP::vehicle()->get_mode());
+    if(my_sysid != 1) return;
     for (int i = 0; i < 4; i++) {
         uint8_t maybe_new_son = net_zero_router.backup_son[i];
         if (maybe_new_son == 0xFF) {
+            // GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "unavailable i %d , case 1", i);
             continue;   // 跳过无效值
         }
 
         uint8_t chan = get_mavlink_chan_by_uart(maybe_new_son);
         if (chan == 0xFF) {
             // 无效的 UART ID，可能是错误的输入或未配置的 UART
+            // GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "unavailable channal %d , case 2", maybe_new_son);
             continue;
         }
-        // hal.console->printf("Updating son %d on mavlink channel %d\r\n", maybe_new_son, chan);
         mavlink_msg_net_zero_mavlink_send((mavlink_channel_t)chan, 1, 0);
     }
 }
