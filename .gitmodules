@@ -6,7 +6,7 @@
 	url = https://github.com/google/benchmark.git
 [submodule "modules/mavlink"]
 	path = modules/mavlink
-	url = https://github.com/CraaazyGhooost/Net_Zero_Ardupilot/mavlink.git
+	url = https://github.com/CraaazyGhooost/mavlink.git
 [submodule "gtest"]
 	path = modules/gtest
 	url = https://github.com/ArduPilot/googletest
