@@ -192,7 +192,7 @@ void AP_MotorsMatrix::output_to_motors()
                 control_val[0], control_val[1], control_val[2], control_val[3]);
             GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "%hd, %hd, %hd, %hd", control_val[0], control_val[1], control_val[2], control_val[3]);
 
-            // mavlink_msg_sub_drone_control_send((mavlink_channel_t)(conn.mavlink_chan), conn.target_id, \
+            // mavlink_msg_sub_drone_control_send((mavlink_channel_t)(conn.mavlink_chan), conn.target_id, 
             //     1, 2, 3, 4);
         }
     }
