@@ -1212,7 +1212,7 @@ void GCS_MAVLINK_Copter::handle_message_net_zero_command(const mavlink_message_t
     mavlink_net_zero_mavlink_t packet;
     mavlink_msg_net_zero_mavlink_decode(&msg, &packet);
     uint8_t sender_id = msg.sysid;
-    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Received net zero command with param1: %d from id %u", packet.test1, sender_id);
+    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Net zero command %d, %d from %u", packet.test1, packet.test2, sender_id);
 
     int i = 0;
     switch(packet.test1){
@@ -1241,10 +1241,10 @@ void GCS_MAVLINK_Copter::handle_message_net_zero_command(const mavlink_message_t
             break;
         case 10:
             if(packet.test2 == 10){
-                GCS_SEND_TEXT(MAV_SEVERITY_WARNING,"receive cmd to arm!!!");
+                GCS_SEND_TEXT(MAV_SEVERITY_WARNING,"Father arm cmd, arm");
                 AP::arming().arm(AP_Arming::Method::MAVLINK);
             }else if(packet.test2 == 20){
-                GCS_SEND_TEXT(MAV_SEVERITY_WARNING,"receive cmd to DISARM!!!");
+                GCS_SEND_TEXT(MAV_SEVERITY_WARNING,"Father disarm cmd, disarm");
                 AP::arming().disarm(AP_Arming::Method::MAVLINK);
             }
             break;

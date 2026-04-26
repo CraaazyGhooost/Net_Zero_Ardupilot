@@ -270,7 +270,6 @@ void Copter::update_router()
 {
     // 获取当前的 MAVLink 系统 ID
     uint8_t my_sysid = gcs().sysid_this_mav();
-    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Now flight mode: %d", AP::vehicle()->get_mode());
     if(my_sysid != 1) return;
     for (int i = 0; i < 4; i++) {
         uint8_t maybe_new_son = net_zero_router.backup_son[i];
@@ -802,6 +801,8 @@ uint32_t Copter::ap_value() const
 // one_hz_loop - runs at 1Hz
 void Copter::one_hz_loop()
 {
+    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Now flight mode: %d", AP::vehicle()->get_mode());
+
 #if HAL_LOGGING_ENABLED
     if (should_log(MASK_LOG_ANY)) {
         Log_Write_Data(LogDataID::AP_STATE, ap_value());
