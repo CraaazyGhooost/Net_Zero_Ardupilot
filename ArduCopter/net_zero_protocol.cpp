@@ -83,7 +83,7 @@ uint8_t get_mavlink_chan_by_uart(uint8_t uart_id){
     const AP_HAL::HAL& hal = AP_HAL::get_HAL();
     AP_HAL::UARTDriver *target_uart = hal.serial(uart_id);
     if (target_uart == nullptr) { 
-        hal.console->printf("UART %d is not available\n", uart_id);
+        // hal.console->printf("UART %d is not available\n", uart_id);
         return 0xFF; // Invalid UART
     }
 
@@ -98,7 +98,7 @@ uint8_t get_mavlink_chan_by_uart(uint8_t uart_id){
     if (target_link != nullptr) {
         return target_link->get_chan();
     } else {
-        hal.console->printf("Serial %d is not a MAVLink channel\n", uart_id);
+        // hal.console->printf("Serial %d is not a MAVLink channel\n", uart_id);
         return 0xFF; // UART exists but is not a MAVLink channel
     }
 }

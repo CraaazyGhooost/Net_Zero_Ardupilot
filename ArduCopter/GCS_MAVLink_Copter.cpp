@@ -1242,8 +1242,12 @@ void GCS_MAVLINK_Copter::handle_message_net_zero_command(const mavlink_message_t
         case 10:
             if(packet.test2 == 10){
                 GCS_SEND_TEXT(MAV_SEVERITY_WARNING,"Father arm cmd, arm");
+                GCS_SEND_TEXT(MAV_SEVERITY_WARNING,"Father arm cmd, arm");
+                GCS_SEND_TEXT(MAV_SEVERITY_WARNING,"Father arm cmd, arm");
                 AP::arming().arm(AP_Arming::Method::MAVLINK);
             }else if(packet.test2 == 20){
+                GCS_SEND_TEXT(MAV_SEVERITY_WARNING,"Father disarm cmd, disarm");
+                GCS_SEND_TEXT(MAV_SEVERITY_WARNING,"Father disarm cmd, disarm");
                 GCS_SEND_TEXT(MAV_SEVERITY_WARNING,"Father disarm cmd, disarm");
                 AP::arming().disarm(AP_Arming::Method::MAVLINK);
             }
@@ -1255,7 +1259,7 @@ void GCS_MAVLINK_Copter::handle_message_net_zero_command(const mavlink_message_t
 void GCS_MAVLINK_Copter::handle_message_sub_drone_control(const mavlink_message_t &msg){
     mavlink_sub_drone_control_t packet;
     mavlink_msg_sub_drone_control_decode(&msg, &packet);
-    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Sub drone control to %d: %hd,%hd,%hd,%hd", (int)(packet.target), packet.motor1, packet.motor2, packet.motor3, packet.motor4);
+    // GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "receive Sub drone control to %d: %hd,%hd,%hd,%hd", (int)(packet.target), packet.motor1, packet.motor2, packet.motor3, packet.motor4);
     SubDroneCache[packet.target][0] = packet.motor1;
     SubDroneCache[packet.target][1] = packet.motor2;
     SubDroneCache[packet.target][2] = packet.motor3;
@@ -1265,7 +1269,7 @@ void GCS_MAVLINK_Copter::handle_message_sub_drone_control(const mavlink_message_
 void GCS_MAVLINK_Copter::handle_message(const mavlink_message_t &msg)
 {
     // hal.console->printf("Received message with id %u from id %u\r\n", msg.msgid, msg.sysid);
-    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Received message with id %u from id %u", msg.msgid, msg.sysid);
+    // GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Received message with id %u from id %u", msg.msgid, msg.sysid);
 
     switch (msg.msgid) {
     case MAVLINK_MSG_ID_NET_ZERO_MAVLINK:

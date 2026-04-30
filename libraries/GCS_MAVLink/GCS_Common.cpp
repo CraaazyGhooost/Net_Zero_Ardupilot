@@ -5237,7 +5237,9 @@ MAV_RESULT GCS_MAVLINK::handle_command_component_arm_disarm(const mavlink_comman
         const bool do_arming_checks = !is_equal(packet.param2,magic_force_arm_value) && !is_equal(packet.param2,magic_force_arm_disarm_value);
         if (AP::arming().arm(AP_Arming::Method::MAVLINK, do_arming_checks)) {
             //net_zero: send message to let the sons to arm
+            mavlink_msg_net_zero_mavlink_send((mavlink_channel_t)1, 10, 10);
             mavlink_msg_net_zero_mavlink_send((mavlink_channel_t)2, 10, 10);
+            mavlink_msg_net_zero_mavlink_send((mavlink_channel_t)3, 10, 10);
             GCS_SEND_TEXT(MAV_SEVERITY_INFO, "GCS arm command, send to sons");
 
             return MAV_RESULT_ACCEPTED;

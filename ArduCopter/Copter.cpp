@@ -285,6 +285,7 @@ void Copter::update_router()
             continue;
         }
         mavlink_msg_net_zero_mavlink_send((mavlink_channel_t)chan, 1, 0);
+        // GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Net zero router: sent message to son %d on channel %d", maybe_new_son, chan);
     }
 }
 
