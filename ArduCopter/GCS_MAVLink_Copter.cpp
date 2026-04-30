@@ -1256,6 +1256,7 @@ void GCS_MAVLINK_Copter::handle_message_net_zero_command(const mavlink_message_t
             break;
     }
 }
+
 void GCS_MAVLINK_Copter::handle_message_sub_drone_control(const mavlink_message_t &msg){
     mavlink_sub_drone_control_t packet;
     mavlink_msg_sub_drone_control_decode(&msg, &packet);
