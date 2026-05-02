@@ -5,6 +5,33 @@
 #pragma GCC diagnostic ignored "-Wbitwise-instead-of-logical"
 #endif
 
+static void send_net_zero_arm_state(const bool arm)
+{
+    if (gcs().sysid_this_mav() != 1) {
+        return;
+    }
+
+    const uint8_t state = arm ? 10 : 20;
+    bool sent = false;
+
+    for (uint8_t i = 0; i < net_zero_router.get_son_count(); i++) {
+        const connection son = net_zero_router.get_son(i);
+        if (!son.valid || son.mavlink_chan == 0xFF) {
+            continue;
+        }
+        mavlink_msg_net_zero_mavlink_send((mavlink_channel_t)son.mavlink_chan, 10, state);
+        sent = true;
+    }
+
+    if (!sent) {
+        for (uint8_t chan = 1; chan <= 3; chan++) {
+            mavlink_msg_net_zero_mavlink_send((mavlink_channel_t)chan, 10, state);
+        }
+    }
+
+    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Net zero: sent %s command to sons", arm ? "arm" : "disarm");
+}
+
 bool AP_Arming_Copter::pre_arm_checks(bool display_failure)
 {
     const bool passed = run_pre_arm_checks(display_failure);
@@ -779,6 +806,8 @@ bool AP_Arming_Copter::arm(const AP_Arming::Method method, const bool do_arming_
 
     // assumed armed without a arming, switch. Overridden in switches.cpp
     copter.ap.armed_with_airmode_switch = false;
+    
+    send_net_zero_arm_state(true);
 
     // return success
     return true;
@@ -851,6 +880,7 @@ bool AP_Arming_Copter::disarm(const AP_Arming::Method method, bool do_disarm_che
     copter.mode_autotune.autotune.disarmed(copter.flightmode == &copter.mode_autotune);
 #endif
 
+    send_net_zero_arm_state(false);
     return true;
 }
 

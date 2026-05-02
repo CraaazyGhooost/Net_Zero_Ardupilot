@@ -1771,6 +1771,8 @@ bool AP_Arming::arm_checks(AP_Arming::Method method)
     if (check_enabled(Check::RC)) {
         if (!rc_arm_checks(method)) {
             return false;
+        }else{
+
         }
     }
 #endif
@@ -1879,6 +1881,10 @@ bool AP_Arming::arm(AP_Arming::Method method, const bool do_arming_checks)
 
         _last_arm_method = method;
 
+        if ((method == Method::AUXSWITCH) || (method == Method::RUDDER)) {
+            send_arm_disarm_statustext("Armed via RC");
+        }
+
 #if HAL_LOGGING_ENABLED
         Log_Write_Arm(!do_arming_checks, method); // note Log_Write_Armed takes forced not do_arming_checks
 #endif
@@ -1948,6 +1954,10 @@ bool AP_Arming::disarm(const AP_Arming::Method method, bool do_disarm_checks)
     }
     armed = false;
     _last_disarm_method = method;
+
+    if ((method == Method::AUXSWITCH) || (method == Method::RUDDER)) {
+        send_arm_disarm_statustext("Disarmed via RC");
+    }
 
 #if HAL_LOGGING_ENABLED
     Log_Write_Disarm(!do_disarm_checks, method);  // Log_Write_Disarm takes "force"
