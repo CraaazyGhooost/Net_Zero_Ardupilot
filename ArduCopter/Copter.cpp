@@ -282,7 +282,7 @@ void Copter::update_router()
         uint8_t chan = get_mavlink_chan_by_uart(maybe_new_son);
         if (chan == 0xFF) {
             // 无效的 UART ID，可能是错误的输入或未配置的 UART
-            // GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "unavailable channal %d , case 2", maybe_new_son);
+            // GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "unavailable channel %d , case 2", maybe_new_son);
             continue;
         }
         mavlink_msg_net_zero_mavlink_send((mavlink_channel_t)chan, 1, 0);
