@@ -190,7 +190,7 @@ void AP_MotorsMatrix::output_to_motors()
             //now send the full sub_tree
             mavlink_msg_sub_drone_control_send((mavlink_channel_t)(conn.mavlink_chan), conn.target_id, \
                 control_val[0], control_val[1], control_val[2], control_val[3]);
-            GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "send:%hd, %hd, %hd, %hd", control_val[0], control_val[1], control_val[2], control_val[3]);
+            // GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "send:%hd, %hd, %hd, %hd", control_val[0], control_val[1], control_val[2], control_val[3]);
 
             // mavlink_msg_sub_drone_control_send((mavlink_channel_t)(conn.mavlink_chan), conn.target_id, 
             //     1, 2, 3, 4);
@@ -208,7 +208,7 @@ void AP_MotorsMatrix::output_to_motors()
         for (i = 0; i < AP_MOTORS_MAX_NUM_MOTORS; i++) {
             if (motor_enabled[i] && i < 4) { // ensure we don't go out of bounds of SubDroneCache
                 rc_write(i, SubDroneCache[my_sysid][i]);
-                GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "use Sub drone control : %hd,%hd,%hd,%hd", SubDroneCache[my_sysid][0], SubDroneCache[my_sysid][1], SubDroneCache[my_sysid][2], SubDroneCache[my_sysid][3]);
+                // GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "use Sub drone control : %hd,%hd,%hd,%hd", SubDroneCache[my_sysid][0], SubDroneCache[my_sysid][1], SubDroneCache[my_sysid][2], SubDroneCache[my_sysid][3]);
             }
         }
     }else{//normal, use current motor outputs
@@ -216,7 +216,7 @@ void AP_MotorsMatrix::output_to_motors()
         for (i = 0; i < AP_MOTORS_MAX_NUM_MOTORS; i++) {
             if (motor_enabled[i]) {
                 rc_write(i, control_val[i]);
-                GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "use self control : %hd,%hd,%hd,%hd", control_val[0], control_val[1], control_val[2], control_val[3]);
+                // GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "use self control : %hd,%hd,%hd,%hd", control_val[0], control_val[1], control_val[2], control_val[3]);
 
             }
         }

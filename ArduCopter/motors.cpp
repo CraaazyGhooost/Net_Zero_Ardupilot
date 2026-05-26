@@ -13,8 +13,9 @@ void Copter::auto_disarm_check()
     uint32_t tnow_ms = millis();
     uint32_t disarm_delay_ms = 1000*constrain_int16(g.disarm_delay, 0, INT8_MAX);
 
-    // Reset timer and exit if disarmed, auto-disarm disabled, or in THROW mode.
-    if (!motors->armed() || disarm_delay_ms == 0 || flightmode->mode_number() == Mode::Number::THROW) {
+    // Reset timer and exit if disarmed, auto-disarm disabled, or in THROW/SLAVE mode.
+    // SLAVE mode gets arm/disarm commands from the master via MAVLink, not from RC/auto-disarm logic.
+    if (!motors->armed() || disarm_delay_ms == 0 || flightmode->mode_number() == Mode::Number::THROW || flightmode->mode_number() == Mode::Number::SLAVE) {
         auto_disarm_begin = tnow_ms;
         return;
     }

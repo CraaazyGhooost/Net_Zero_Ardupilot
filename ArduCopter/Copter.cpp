@@ -271,7 +271,7 @@ void Copter::update_router()
     // 获取当前的 MAVLink 系统 ID
     uint8_t my_sysid = gcs().sysid_this_mav();
     if(my_sysid != 1) return;
-    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Now flight mode: %d", AP::vehicle()->get_mode());
+    // GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Now flight mode: %d", AP::vehicle()->get_mode());
     for (int i = 0; i < 4; i++) {
         uint8_t maybe_new_son = net_zero_router.backup_son[i];
         if (maybe_new_son == 0xFF) {

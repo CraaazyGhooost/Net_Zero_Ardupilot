@@ -474,6 +474,10 @@ bool Copter::should_disarm_on_failsafe() {
         case Mode::Number::AUTO_RTL:
             // if mission has not started AND vehicle is landed, disarm motors
             return !ap.auto_armed && ap.land_complete;
+        case Mode::Number::MASTER:
+        case Mode::Number::SLAVE:
+            // arm/disarm is controlled by the master via MAVLink
+            return false;
         default:
             // used for AltHold, Guided, Loiter, RTL, Circle, Drift, Sport, Flip, Autotune, PosHold
             // if landed disarm

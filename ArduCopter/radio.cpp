@@ -115,6 +115,12 @@ void Copter::read_radio()
         return;
     }
 
+    // SLAVE and MASTER modes do not use RC input; control comes from MAVLink.
+    // Skip radio failsafe to prevent unintended disarms.
+    if (flightmode->mode_number() == Mode::Number::SLAVE || flightmode->mode_number() == Mode::Number::MASTER) {
+        return;
+    }
+
     // trigger failsafe if no update from the RC Radio for RC_FS_TIMEOUT seconds
     const uint32_t elapsed_ms = tnow_ms - last_radio_update_ms;
     if (elapsed_ms < rc().get_fs_timeout_ms()) {
