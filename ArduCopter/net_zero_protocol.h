@@ -36,6 +36,10 @@ public:
     uint8_t get_son_count();
 
 
+    // delayed UART enable: disable a UART at init, re-enable after delay
+    void init_delayed_uart();        // call from Copter::init_ardupilot()
+    void delayed_uart_tick();        // timer callback to check and re-enable
+
     connection father;
     connection son[4];
     uint8_t backup_son[4]; // backup serial id!!!
@@ -43,6 +47,10 @@ public:
     uint8_t son_max;
     uint8_t son_count;
 
+    // state for delayed UART enable
+    uint8_t  _delayed_uart_id;
+    uint32_t _delayed_uart_enable_ms;
+    bool     _delayed_uart_pending;
 
 };
 
@@ -51,5 +59,11 @@ extern NetZeroRouter net_zero_router; // global instance
 extern uint16_t SubDroneCache[10][4]; // global cache for sub-drone data, 10 sets of 4 data points each
 
 uint8_t get_mavlink_chan_by_uart(uint8_t uart_id); // helper function to get mavlink channel by uart id
+
+// delayed UART enable: disable a UART at init time, re-enable after a delay
+#define NETZERO_DELAYED_UART_ID       4       // SERIAL4 to delay
+#define NETZERO_DELAYED_UART_ENABLE_MS 3000   // delay 3 seconds before re-enable
+
+void net_zero_delayed_uart_init();  // call from Copter::init_ardupilot()
 
 #endif

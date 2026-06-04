@@ -18,6 +18,74 @@ NetZeroRouter::NetZeroRouter() {
     backup_dir[3] = right;
     son_count = 0;
     son_max = 2;
+
+    // delayed UART enable state
+    _delayed_uart_id = 0xFF;
+    _delayed_uart_enable_ms = 0;
+    _delayed_uart_pending = false;
+}
+
+void NetZeroRouter::init_delayed_uart()
+{
+    _delayed_uart_id = NETZERO_DELAYED_UART_ID;
+    const AP_HAL::HAL& hal = AP_HAL::get_HAL();
+    AP_HAL::UARTDriver *uart = hal.serial(_delayed_uart_id);
+
+    if (uart != nullptr) {
+        /*
+         * use end() to fully deinit the UART:
+         *   - stops DMA, serial hardware, and threads
+         *   - clears TX/RX buffers (discards all dead-period data,
+         *     preventing overflow since TX buffer is only 256 bytes)
+         *   - sets _tx_initialised/_rx_initialised to false
+         *
+         * MAVLink comm_send_buffer() safely ignores write failures
+         * on real hardware (see GCS_MAVLink.cpp line 149-156):
+         *   const size_t written = ...write(buf, len);
+         *   (void)written;  // short write silently dropped on ChibiOS
+         */
+        uart->end();
+        hal.console->printf("NetZero: UART%u disabled (buffers cleared), "
+                            "will re-enable in %ums\n",
+                            _delayed_uart_id, NETZERO_DELAYED_UART_ENABLE_MS);
+    }
+
+    _delayed_uart_enable_ms = AP_HAL::millis() + NETZERO_DELAYED_UART_ENABLE_MS;
+    _delayed_uart_pending = true;
+
+    hal.scheduler->register_timer_process(
+        FUNCTOR_BIND(&net_zero_router, &NetZeroRouter::delayed_uart_tick, void));
+}
+
+void NetZeroRouter::delayed_uart_tick()
+{
+    if (!_delayed_uart_pending) {
+        return;
+    }
+    if (AP_HAL::millis() < _delayed_uart_enable_ms) {
+        return;
+    }
+
+    const AP_HAL::HAL& hal = AP_HAL::get_HAL();
+    AP_HAL::UARTDriver *uart = hal.serial(_delayed_uart_id);
+
+    if (uart != nullptr) {
+        // get baudrate from serial manager state (set by SERIALn_BAUD parameter)
+        const AP_SerialManager::UARTState *uart_state =
+            AP::serialmanager().get_state_by_id(_delayed_uart_id);
+        uint32_t baud = uart_state ? uart_state->baudrate() : 57600;
+
+        // begin() re-allocates buffers, restarts DMA & serial hardware,
+        // and restores pins to their alternate function. Stale data is
+        // already discarded by end(), so we start completely fresh.
+        uart->begin(baud,
+                    AP_SERIALMANAGER_MAVLINK_BUFSIZE_RX,
+                    AP_SERIALMANAGER_MAVLINK_BUFSIZE_TX);
+        hal.console->printf("NetZero: UART%u re-enabled at %lu baud\n",
+                            _delayed_uart_id, (unsigned long)baud);
+    }
+
+    _delayed_uart_pending = false;  // one-shot, only execute once
 }
 
 bool NetZeroRouter::set_father_uart(direc d, uint8_t s_id, uint8_t t_id) {

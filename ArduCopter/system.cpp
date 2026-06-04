@@ -37,6 +37,9 @@ void Copter::init_ardupilot()
     // setup telem slots with serial ports
     gcs().setup_uarts();
 
+    // net_zero: disable a UART at init, re-enable after delay
+    net_zero_router.init_delayed_uart();
+
 #if OSD_ENABLED
     osd.init();
 #endif
