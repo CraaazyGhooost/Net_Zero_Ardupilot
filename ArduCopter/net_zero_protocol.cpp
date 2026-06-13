@@ -73,7 +73,7 @@ void NetZeroRouter::delayed_uart_tick()
         // get baudrate from serial manager state (set by SERIALn_BAUD parameter)
         const AP_SerialManager::UARTState *uart_state =
             AP::serialmanager().get_state_by_id(_delayed_uart_id);
-        uint32_t baud = uart_state ? uart_state->baudrate() : 115200;
+        uint32_t baud = uart_state ? uart_state->baudrate() : 230400;
 
         // begin() re-allocates buffers, restarts DMA & serial hardware,
         // and restores pins to their alternate function. Stale data is
