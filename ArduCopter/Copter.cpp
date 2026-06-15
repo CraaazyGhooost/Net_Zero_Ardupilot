@@ -803,6 +803,11 @@ uint32_t Copter::ap_value() const
 // one_hz_loop - runs at 1Hz
 void Copter::one_hz_loop()
 {
+    // 从机模式下每秒向地面站发送状态消息（无人机间通道已标记私有，不会泄漏）
+    if (copter.flightmode->mode_number() == Mode::Number::SLAVE) {
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Slave mode active, sysid=%u", gcs().sysid_this_mav());
+    }
+
 #if HAL_LOGGING_ENABLED
     if (should_log(MASK_LOG_ANY)) {
         Log_Write_Data(LogDataID::AP_STATE, ap_value());

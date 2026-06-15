@@ -1225,6 +1225,8 @@ void GCS_MAVLINK_Copter::handle_message_net_zero_command(const mavlink_message_t
             mavlink_msg_net_zero_mavlink_send(
                 gcs().chan(chan)->get_chan(), 2, 0
             );
+            // 标记与主机通信的通道为私有，阻止STATUSTEXT等广播消息泄漏到主机
+            GCS_MAVLINK::set_channel_private((mavlink_channel_t)chan);
             if(0 == copter.set_mode(Mode::Number::SLAVE, ModeReason::GCS_COMMAND)){
                 GCS_SEND_TEXT(MAV_SEVERITY_WARNING,"change mode failed!!!");
             }

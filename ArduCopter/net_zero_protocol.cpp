@@ -117,6 +117,8 @@ bool NetZeroRouter::add_son_uart(direc d, uint8_t s_id, uint8_t t_id) {
     }
     son[son_count] = connection(true, d, t_id, s_id, mavlink_chan);
     son_count++;
+    // 标记为私有通道：保持心跳和直接消息，过滤广播包（如STATUSTEXT）
+    GCS_MAVLINK::set_channel_private(mavlink_chan);
     // 从备份列表中清除已成功注册的 UART，停止对其继续探测
     for(int i = 0; i < 4; i++){
         if(backup_son[i] == s_id){
