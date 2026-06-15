@@ -32,29 +32,19 @@ void NetZeroRouter::init_delayed_uart()
     AP_HAL::UARTDriver *uart = hal.serial(_delayed_uart_id);
 
     if (uart != nullptr) {
-        /*
-         * use end() to fully deinit the UART:
-         *   - stops DMA, serial hardware, and threads
-         *   - clears TX/RX buffers (discards all dead-period data,
-         *     preventing overflow since TX buffer is only 256 bytes)
-         *   - sets _tx_initialised/_rx_initialised to false
-         *
-         * MAVLink comm_send_buffer() safely ignores write failures
-         * on real hardware (see GCS_MAVLink.cpp line 149-156):
-         *   const size_t written = ...write(buf, len);
-         *   (void)written;  // short write silently dropped on ChibiOS
-         */
+        // uart->end() 完全反初始化串口：停止 DMA、硬件和线程，清空收发缓冲区
         uart->end();
         hal.console->printf("NetZero: UART%u disabled (buffers cleared), "
                             "will re-enable in %ums\n",
                             _delayed_uart_id, NETZERO_DELAYED_UART_ENABLE_MS);
+
+        // 设置延时使能参数并注册定时器回调
+        _delayed_uart_enable_ms = AP_HAL::millis() + NETZERO_DELAYED_UART_ENABLE_MS;
+        _delayed_uart_pending = true;
+
+        hal.scheduler->register_timer_process(
+            FUNCTOR_BIND(&net_zero_router, &NetZeroRouter::delayed_uart_tick, void));
     }
-
-    _delayed_uart_enable_ms = AP_HAL::millis() + NETZERO_DELAYED_UART_ENABLE_MS;
-    _delayed_uart_pending = true;
-
-    hal.scheduler->register_timer_process(
-        FUNCTOR_BIND(&net_zero_router, &NetZeroRouter::delayed_uart_tick, void));
 }
 
 void NetZeroRouter::delayed_uart_tick()
@@ -70,14 +60,12 @@ void NetZeroRouter::delayed_uart_tick()
     AP_HAL::UARTDriver *uart = hal.serial(_delayed_uart_id);
 
     if (uart != nullptr) {
-        // get baudrate from serial manager state (set by SERIALn_BAUD parameter)
+        // 从串口管理器获取用户配置的波特率（由 SERIALn_BAUD 参数设定）
         const AP_SerialManager::UARTState *uart_state =
             AP::serialmanager().get_state_by_id(_delayed_uart_id);
         uint32_t baud = uart_state ? uart_state->baudrate() : 230400;
 
-        // begin() re-allocates buffers, restarts DMA & serial hardware,
-        // and restores pins to their alternate function. Stale data is
-        // already discarded by end(), so we start completely fresh.
+        // begin() 重新分配缓冲区、启动 DMA 和串口硬件，恢复引脚复用功能
         uart->begin(baud,
                     AP_SERIALMANAGER_MAVLINK_BUFSIZE_RX,
                     AP_SERIALMANAGER_MAVLINK_BUFSIZE_TX);

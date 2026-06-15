@@ -63,7 +63,7 @@ uint8_t get_uart_id_by_mavlink_chan(uint8_t mavlink_chan); // 通过 MAVLink 通
 
 // delayed UART enable: disable a UART at init time, re-enable after a delay
 #define NETZERO_DELAYED_UART_ID       4       // SERIAL4 to delay
-#define NETZERO_DELAYED_UART_ENABLE_MS 13000   // delay 3 seconds before re-enable
+#define NETZERO_DELAYED_UART_ENABLE_MS 13000   // 延时 13 秒后重新使能
 
 void net_zero_delayed_uart_init();  // call from Copter::init_ardupilot()
 
