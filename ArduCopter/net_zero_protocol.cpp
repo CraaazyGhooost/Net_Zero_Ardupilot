@@ -193,7 +193,7 @@ uint8_t get_uart_id_by_mavlink_chan(uint8_t mavlink_chan){
     }
     // 遍历所有串口，找到 UART 指针对应的串口 ID
     const AP_HAL::HAL& hal = AP_HAL::get_HAL();
-    for (uint8_t i = 0; i < HAL_MAX_SERIAL_PORTS; i++) {
+    for (uint8_t i = 0; i < HAL_NUM_SERIAL_PORTS; i++) {
         if (hal.serial(i) == target_uart) {
             return i;
         }
