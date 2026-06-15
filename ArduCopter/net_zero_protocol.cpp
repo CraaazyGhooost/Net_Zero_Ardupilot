@@ -27,6 +27,11 @@ NetZeroRouter::NetZeroRouter() {
 
 void NetZeroRouter::init_delayed_uart()
 {
+    // 只有主机需要延时使能串口，从机必须保持监听以接收探测帧
+    if (gcs().sysid_this_mav() != 1) {
+        return;
+    }
+
     _delayed_uart_id = NETZERO_DELAYED_UART_ID;
     const AP_HAL::HAL& hal = AP_HAL::get_HAL();
     AP_HAL::UARTDriver *uart = hal.serial(_delayed_uart_id);
