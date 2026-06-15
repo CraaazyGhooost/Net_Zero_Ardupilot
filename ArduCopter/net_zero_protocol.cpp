@@ -103,24 +103,31 @@ bool NetZeroRouter::set_father_uart(direc d, uint8_t s_id, uint8_t t_id) {
 
 bool NetZeroRouter::add_son_uart(direc d, uint8_t s_id, uint8_t t_id) {
     if(d == direc::no_dir){
-        return false; // Invalid direction
+        return false; // 无效的方向
     }
     if (s_id == 0xFF || t_id == 0xFF) {
-        return false; // Invalid UART
+        return false; // 无效的 UART 或目标 ID
     }
     if( son_count >= son_max) {
-        // Maximum number of son UARTs reached, cannot add more
+        // 已达到最大从机数量，无法继续添加
         return false;
+    }
+    // 检查是否已存在相同 target_id 的从机，防止重复注册
+    for (uint8_t i = 0; i < son_count; i++) {
+        if (son[i].valid && son[i].target_id == t_id) {
+            return false; // 该从机已注册，跳过
+        }
     }
     mavlink_channel_t mavlink_chan = (mavlink_channel_t)get_mavlink_chan_by_uart(s_id);
     if(mavlink_chan == 0xFF){
-        return false; // UART exists but is not a MAVLink channel
+        return false; // UART 存在但并非 MAVLink 通道
     }
     son[son_count] = connection(true, d, t_id, s_id, mavlink_chan);
     son_count++;
+    // 从备份列表中清除已成功注册的 UART，停止对其继续探测
     for(int i = 0; i < 4; i++){
         if(backup_son[i] == s_id){
-            backup_son[i] = 0xFF; // clear the backup
+            backup_son[i] = 0xFF;
             break;
         }
     }
