@@ -29,10 +29,10 @@ public:
 
     // param: uart = real uart number, e.g. 0 for SERIAL0, 1 for SERIAL1, etc.
     bool set_father_uart(direc d, uint8_t s_id, uint8_t t_id); // set father connection with a connection struct
-    bool add_son_uart(direc d, uint8_t s_id, uint8_t t_id); // add a son connection with a connection struct, up to 8 sons
+    bool add_son_uart(direc d, uint8_t s_id, uint8_t t_id); // 添加从机连接，最多 son_max 个（当前为2），数组容量为4
 
     connection get_father();
-    connection get_son(uint8_t son);// param: son = 0-7 for son1-son8   ret: real uart number
+    connection get_son(uint8_t son);// 参数: son = 0 ~ son_count-1，返回对应从机的连接信息
     uint8_t get_son_count();
 
 
@@ -41,7 +41,7 @@ public:
     void delayed_uart_tick();        // timer callback to check and re-enable
 
     connection father;
-    connection son[4];
+    connection son[4]; // 从机连接数组，容量4，实际使用数量由 son_max 限制
     uint8_t backup_son[4]; // backup serial id!!!
     direc backup_dir[4];
     uint8_t son_max;
