@@ -58,7 +58,8 @@ extern NetZeroRouter net_zero_router; // global instance
 
 extern uint16_t SubDroneCache[10][4]; // global cache for sub-drone data, 10 sets of 4 data points each
 
-uint8_t get_mavlink_chan_by_uart(uint8_t uart_id); // helper function to get mavlink channel by uart id
+uint8_t get_mavlink_chan_by_uart(uint8_t uart_id); // 通过 UART 串口 ID 获取对应的 MAVLink 通道号
+uint8_t get_uart_id_by_mavlink_chan(uint8_t mavlink_chan); // 通过 MAVLink 通道号反查对应的 UART 串口 ID
 
 // delayed UART enable: disable a UART at init time, re-enable after a delay
 #define NETZERO_DELAYED_UART_ID       4       // SERIAL4 to delay

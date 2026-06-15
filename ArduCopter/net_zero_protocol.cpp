@@ -177,3 +177,26 @@ uint8_t get_mavlink_chan_by_uart(uint8_t uart_id){
         return 0xFF; // UART exists but is not a MAVLink channel
     }
 }
+
+// 通过 MAVLink 通道号反查对应的 UART 串口 ID
+uint8_t get_uart_id_by_mavlink_chan(uint8_t mavlink_chan){
+    if (mavlink_chan >= gcs().num_gcs()) {
+        return 0xFF; // 无效的 MAVLink 通道
+    }
+    GCS_MAVLINK *link = gcs().chan(mavlink_chan);
+    if (link == nullptr) {
+        return 0xFF;
+    }
+    AP_HAL::UARTDriver *target_uart = link->get_uart();
+    if (target_uart == nullptr) {
+        return 0xFF;
+    }
+    // 遍历所有串口，找到 UART 指针对应的串口 ID
+    const AP_HAL::HAL& hal = AP_HAL::get_HAL();
+    for (uint8_t i = 0; i < HAL_MAX_SERIAL_PORTS; i++) {
+        if (hal.serial(i) == target_uart) {
+            return i;
+        }
+    }
+    return 0xFF; // 未找到匹配的串口
+}

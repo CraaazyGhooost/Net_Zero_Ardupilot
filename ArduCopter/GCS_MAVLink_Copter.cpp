@@ -1214,7 +1214,6 @@ void GCS_MAVLINK_Copter::handle_message_net_zero_command(const mavlink_message_t
     uint8_t sender_id = msg.sysid;
     GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Net zero command %d, %d from %u", packet.test1, packet.test2, sender_id);
 
-    int i = 0;
     switch(packet.test1){
         case 1: //receive the request from the (maybe) father, now can send the ack to the sender
             // TODO now should send ack in order to let the father update its tree
@@ -1227,17 +1226,20 @@ void GCS_MAVLINK_Copter::handle_message_net_zero_command(const mavlink_message_t
                 GCS_SEND_TEXT(MAV_SEVERITY_WARNING,"change mode failed!!!");
             }
             break;
-        case 2: //receive the ack from the new son, now can update the tree
-            GCS_SEND_TEXT(MAV_SEVERITY_WARNING,"Received ack from chan %u\r\n", chan);
-            GCS_SEND_TEXT(MAV_SEVERITY_WARNING,"get son %u\r\n", sender_id);
-            net_zero_router.add_son_uart(net_zero_router.backup_dir[i], 4, sender_id);
-            // for(i = 0; i < 4; i++){
-            //     if(net_zero_router.backup_son[i] == chan){
-            //         net_zero_router.add_son_uart(net_zero_router.backup_dir[i], chan, sender_id);
-            //         break;
-            //     }
-            // }
-            //TODO
+        case 2: // 收到新从机的应答，注册到路由表
+            {
+                // 通过 MAVLink 通道反查对应的 UART 串口 ID
+                uint8_t serial_id = get_uart_id_by_mavlink_chan(chan);
+                GCS_SEND_TEXT(MAV_SEVERITY_WARNING,"Received ack from chan %u, serial %u\r\n", chan, serial_id);
+                GCS_SEND_TEXT(MAV_SEVERITY_WARNING,"get son %u\r\n", sender_id);
+                // 遍历 backup_son 找到对应的方向并注册从机
+                for(int i = 0; i < 4; i++){
+                    if(net_zero_router.backup_son[i] == serial_id){
+                        net_zero_router.add_son_uart(net_zero_router.backup_dir[i], serial_id, sender_id);
+                        break;
+                    }
+                }
+            }
             break;
         case 10:
             if(packet.test2 == 10){
