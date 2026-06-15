@@ -1215,10 +1215,13 @@ void GCS_MAVLINK_Copter::handle_message_net_zero_command(const mavlink_message_t
     GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Net zero command %d, %d from %u", packet.test1, packet.test2, sender_id);
 
     switch(packet.test1){
-        case 1: //receive the request from the (maybe) father, now can send the ack to the sender
-            // TODO now should send ack in order to let the father update its tree
-            // and this drone into slave mode 
-            hal.console->printf("Received request from chan %u\r\n", chan);
+        case 1: // 收到主机探测帧，回复应答并切换到从机模式
+            // 如果已在 SLAVE 模式或已解锁，无需重复应答，避免主机重复注册
+            if (copter.flightmode->mode_number() == Mode::Number::SLAVE ||
+                AP::arming().is_armed()) {
+                break;
+            }
+            hal.console->printf("Received probe from chan %u\r\n", chan);
             mavlink_msg_net_zero_mavlink_send(
                 gcs().chan(chan)->get_chan(), 2, 0
             );
