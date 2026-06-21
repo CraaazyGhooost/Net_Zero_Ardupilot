@@ -31,6 +31,10 @@ void NetZeroRouter::init_delayed_uart()
     if (gcs().sysid_this_mav() != 1) {
         return;
     }
+    // now disable all delays for test.
+    if (gcs().sysid_this_mav() == 1 || gcs().sysid_this_mav() == 4) {
+        return;
+    }
 
     _delayed_uart_id = NETZERO_DELAYED_UART_ID;
     const AP_HAL::HAL& hal = AP_HAL::get_HAL();
