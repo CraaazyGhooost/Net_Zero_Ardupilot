@@ -178,7 +178,7 @@
 #endif
 #include "mode.h"
 
-#include "net_zero_protocol.h"
+#include <AP_NetZero/AP_NetZero.h>
 
 class Copter : public AP_Vehicle {
 public:

@@ -1,10 +1,8 @@
-#include "net_zero_protocol.h"
-#include "AP_HAL/AP_HAL.h"
+#include "AP_NetZero.h"
 
-NetZeroRouter::NetZeroRouter() {
-    // default constructor
-
-    father = connection(false, front, 0xFF, 0xFF, 0xFF); // default father connection with invalid UART
+NetZeroRouter::NetZeroRouter()
+{
+    father = connection(false, front, 0xFF, 0xFF, 0xFF);
     for (int i = 0; i < 4; i++) {
         son[i] = connection(false, front, 0xFF, 0xFF, 0xFF);
     }
@@ -19,7 +17,6 @@ NetZeroRouter::NetZeroRouter() {
     son_count = 0;
     son_max = 2;
 
-    // delayed UART enable state
     _delayed_uart_id = 0xFF;
     _delayed_uart_enable_ms = 0;
     _delayed_uart_pending = false;
@@ -27,11 +24,9 @@ NetZeroRouter::NetZeroRouter() {
 
 void NetZeroRouter::init_delayed_uart()
 {
-    // 只有主机需要延时使能串口，从机必须保持监听以接收探测帧
     if (gcs().sysid_this_mav() != 1) {
         return;
     }
-    // now disable all delays for test.
     if (gcs().sysid_this_mav() == 1 || gcs().sysid_this_mav() == 4) {
         return;
     }
@@ -41,13 +36,11 @@ void NetZeroRouter::init_delayed_uart()
     AP_HAL::UARTDriver *uart = hal.serial(_delayed_uart_id);
 
     if (uart != nullptr) {
-        // uart->end() 完全反初始化串口：停止 DMA、硬件和线程，清空收发缓冲区
         uart->end();
         hal.console->printf("NetZero: UART%u disabled (buffers cleared), "
                             "will re-enable in %ums\n",
                             _delayed_uart_id, NETZERO_DELAYED_UART_ENABLE_MS);
 
-        // 设置延时使能参数并注册定时器回调
         _delayed_uart_enable_ms = AP_HAL::millis() + NETZERO_DELAYED_UART_ENABLE_MS;
         _delayed_uart_pending = true;
 
@@ -69,12 +62,10 @@ void NetZeroRouter::delayed_uart_tick()
     AP_HAL::UARTDriver *uart = hal.serial(_delayed_uart_id);
 
     if (uart != nullptr) {
-        // 从串口管理器获取用户配置的波特率（由 SERIALn_BAUD 参数设定）
         const AP_SerialManager::UARTState *uart_state =
             AP::serialmanager().get_state_by_id(_delayed_uart_id);
         uint32_t baud = uart_state ? uart_state->baudrate() : 230400;
 
-        // begin() 重新分配缓冲区、启动 DMA 和串口硬件，恢复引脚复用功能
         uart->begin(baud,
                     AP_SERIALMANAGER_MAVLINK_BUFSIZE_RX,
                     AP_SERIALMANAGER_MAVLINK_BUFSIZE_TX);
@@ -82,50 +73,47 @@ void NetZeroRouter::delayed_uart_tick()
                             _delayed_uart_id, (unsigned long)baud);
     }
 
-    _delayed_uart_pending = false;  // one-shot, only execute once
+    _delayed_uart_pending = false;
 }
 
-bool NetZeroRouter::set_father_uart(direc d, uint8_t s_id, uint8_t t_id) {
+bool NetZeroRouter::set_father_uart(direc d, uint8_t s_id, uint8_t t_id)
+{
     if (s_id == 0xFF || t_id == 0xFF) {
-        return false; // Invalid UART
+        return false;
     }
     mavlink_channel_t mavlink_chan = (mavlink_channel_t)get_mavlink_chan_by_uart(s_id);
-    if(mavlink_chan == 0xFF) {
-        return false; // UART exists but is not a MAVLink channel
+    if (mavlink_chan == 0xFF) {
+        return false;
     }
-     // set the father connection with the provided details and the corresponding MAVLink channel
     father = connection(true, d, t_id, s_id, mavlink_chan);
     return true;
 }
 
-bool NetZeroRouter::add_son_uart(direc d, uint8_t s_id, uint8_t t_id) {
-    if(d == direc::no_dir){
-        return false; // 无效的方向
-    }
-    if (s_id == 0xFF || t_id == 0xFF) {
-        return false; // 无效的 UART 或目标 ID
-    }
-    if( son_count >= son_max) {
-        // 已达到最大从机数量，无法继续添加
+bool NetZeroRouter::add_son_uart(direc d, uint8_t s_id, uint8_t t_id)
+{
+    if (d == direc::no_dir) {
         return false;
     }
-    // 检查是否已存在相同 target_id 的从机，防止重复注册
+    if (s_id == 0xFF || t_id == 0xFF) {
+        return false;
+    }
+    if (son_count >= son_max) {
+        return false;
+    }
     for (uint8_t i = 0; i < son_count; i++) {
         if (son[i].valid && son[i].target_id == t_id) {
-            return false; // 该从机已注册，跳过
+            return false;
         }
     }
     mavlink_channel_t mavlink_chan = (mavlink_channel_t)get_mavlink_chan_by_uart(s_id);
-    if(mavlink_chan == 0xFF){
-        return false; // UART 存在但并非 MAVLink 通道
+    if (mavlink_chan == 0xFF) {
+        return false;
     }
     son[son_count] = connection(true, d, t_id, s_id, mavlink_chan);
     son_count++;
-    // 标记为私有通道：保持心跳和直接消息，过滤广播包（如STATUSTEXT）
     GCS_MAVLINK::set_channel_private(mavlink_chan);
-    // 从备份列表中清除已成功注册的 UART，停止对其继续探测
-    for(int i = 0; i < 4; i++){
-        if(backup_son[i] == s_id){
+    for (int i = 0; i < 4; i++) {
+        if (backup_son[i] == s_id) {
             backup_son[i] = 0xFF;
             break;
         }
@@ -133,32 +121,34 @@ bool NetZeroRouter::add_son_uart(direc d, uint8_t s_id, uint8_t t_id) {
     return true;
 }
 
-connection NetZeroRouter::get_father() {
+connection NetZeroRouter::get_father()
+{
     return father;
 }
 
-connection NetZeroRouter::get_son(uint8_t s) {
+connection NetZeroRouter::get_son(uint8_t s)
+{
     if (s < son_count) {
         return son[s];
-    } else {
-        return connection(false, front, 0xFF, 0xFF, 0xFF); // Invalid son index
     }
+    return connection(false, front, 0xFF, 0xFF, 0xFF);
 }
 
-uint8_t NetZeroRouter::get_son_count() { 
+uint8_t NetZeroRouter::get_son_count()
+{
     return son_count;
 }
 
-NetZeroRouter net_zero_router; // global instance
+NetZeroRouter net_zero_router;
 
 uint16_t SubDroneCache[10][4];
 
-uint8_t get_mavlink_chan_by_uart(uint8_t uart_id){
+uint8_t get_mavlink_chan_by_uart(uint8_t uart_id)
+{
     const AP_HAL::HAL& hal = AP_HAL::get_HAL();
     AP_HAL::UARTDriver *target_uart = hal.serial(uart_id);
-    if (target_uart == nullptr) { 
-        // hal.console->printf("UART %d is not available\n", uart_id);
-        return 0xFF; // Invalid UART
+    if (target_uart == nullptr) {
+        return 0xFF;
     }
 
     GCS_MAVLINK *target_link = nullptr;
@@ -171,16 +161,14 @@ uint8_t get_mavlink_chan_by_uart(uint8_t uart_id){
     }
     if (target_link != nullptr) {
         return target_link->get_chan();
-    } else {
-        // hal.console->printf("Serial %d is not a MAVLink channel\n", uart_id);
-        return 0xFF; // UART exists but is not a MAVLink channel
     }
+    return 0xFF;
 }
 
-// 通过 MAVLink 通道号反查对应的 UART 串口 ID
-uint8_t get_uart_id_by_mavlink_chan(uint8_t mavlink_chan){
+uint8_t get_uart_id_by_mavlink_chan(uint8_t mavlink_chan)
+{
     if (mavlink_chan >= gcs().num_gcs()) {
-        return 0xFF; // 无效的 MAVLink 通道
+        return 0xFF;
     }
     GCS_MAVLINK *link = gcs().chan(mavlink_chan);
     if (link == nullptr) {
@@ -190,12 +178,11 @@ uint8_t get_uart_id_by_mavlink_chan(uint8_t mavlink_chan){
     if (target_uart == nullptr) {
         return 0xFF;
     }
-    // 遍历所有串口，找到 UART 指针对应的串口 ID
     const AP_HAL::HAL& hal = AP_HAL::get_HAL();
     for (uint8_t i = 0; i < HAL_NUM_SERIAL_PORTS; i++) {
         if (hal.serial(i) == target_uart) {
             return i;
         }
     }
-    return 0xFF; // 未找到匹配的串口
+    return 0xFF;
 }

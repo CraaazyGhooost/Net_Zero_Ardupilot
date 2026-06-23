@@ -18,7 +18,7 @@
 #include <AP_Vehicle/AP_Vehicle_Type.h>
 #include <AP_Vehicle/AP_Vehicle.h>
 #include <GCS_MAVLink/GCS.h>
-#include "../../ArduCopter/net_zero_protocol.h"
+#include <AP_NetZero/AP_NetZero.h>
 
 extern const AP_HAL::HAL& hal;
 

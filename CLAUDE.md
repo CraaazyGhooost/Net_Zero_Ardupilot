@@ -25,7 +25,7 @@ Arm/disarm is also synchronized from master to slaves.
   - `SUB_DRONE_CONTROL` (ID `17002`): Motor PWM replication — `uint8 target, uint16 motor1-4`
 
 ### Net Zero Protocol (Topology Router)
-- **`ArduCopter/net_zero_protocol.h`** / **`ArduCopter/net_zero_protocol.cpp`**:
+- **`libraries/AP_NetZero/AP_NetZero.h`** / **`libraries/AP_NetZero/AP_NetZero.cpp`**:
   - `connection` struct: Tracks one MAVLink link (direction, target SYSID, UART serial ID, MAVLink channel)
   - `NetZeroRouter` class: Maintains one `father` connection + up to `son_max` (default 2) slave connections
   - `SubDroneCache[10][4]`: Global buffer storing motor PWM values from master, indexed by target SYSID
@@ -36,6 +36,7 @@ Arm/disarm is also synchronized from master to slaves.
 
 ### Router Discovery (Master Side)
 - **`ArduCopter/Copter.cpp`** `update_router()` (line 269): Runs at 10Hz on master (SYSID=1 only). Iterates `backup_son[]` and sends `NET_ZERO_MAVLINK(1, 0)` as discovery probe on each valid backup UART.
+- **`ArduCopter/wscript`**: Adds `AP_NetZero` to the Copter library list so the router implementation is linked into the vehicle build.
 
 ### Message Handlers (Both Master and Slave)
 - **`ArduCopter/GCS_MAVLink_Copter.cpp`**:

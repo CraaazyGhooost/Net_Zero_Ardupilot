@@ -4,7 +4,7 @@
 #include <AP_RPM/AP_RPM_config.h>
 #include <AP_EFI/AP_EFI_config.h>
 
-#include "net_zero_protocol.h"
+#include <AP_NetZero/AP_NetZero.h>
 
 MAV_TYPE GCS_Copter::frame_type() const
 {
