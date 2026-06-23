@@ -285,7 +285,9 @@ void Copter::update_router()
             // GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "unavailable channel %d , case 2", maybe_new_son);
             continue;
         }
-        mavlink_msg_net_zero_mavlink_send((mavlink_channel_t)chan, 1, 0);
+        mavlink_msg_net_zero_mavlink_send((mavlink_channel_t)chan,
+                                          1,
+                                          net_zero_dir_to_protocol(net_zero_router.backup_dir[i]));
         // GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Net zero router: sent message to son %d on channel %d", maybe_new_son, chan);
     }
 }
@@ -803,6 +805,8 @@ uint32_t Copter::ap_value() const
 // one_hz_loop - runs at 1Hz
 void Copter::one_hz_loop()
 {
+    net_zero_router.send_position_debug();
+
     // 从机模式下每秒向地面站发送状态消息（无人机间通道已标记私有，不会泄漏）
     if (copter.flightmode->mode_number() == Mode::Number::SLAVE) {
         GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Slave mode active, sysid=%u", gcs().sysid_this_mav());

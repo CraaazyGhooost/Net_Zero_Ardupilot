@@ -14,6 +14,7 @@ NetZeroRouter::NetZeroRouter()
     backup_dir[1] = left;
     backup_dir[2] = back;
     backup_dir[3] = right;
+    self_position = net_zero_position();
     son_count = 0;
     son_max = 2;
 
@@ -24,6 +25,8 @@ NetZeroRouter::NetZeroRouter()
 
 void NetZeroRouter::init_delayed_uart()
 {
+    init_position_from_sysid();
+
     if (gcs().sysid_this_mav() != 1) {
         return;
     }
@@ -85,7 +88,7 @@ bool NetZeroRouter::set_father_uart(direc d, uint8_t s_id, uint8_t t_id)
     if (mavlink_chan == 0xFF) {
         return false;
     }
-    father = connection(true, d, t_id, s_id, mavlink_chan);
+    father = connection(true, d, t_id, s_id, mavlink_chan, net_zero_position(0, 0, true));
     return true;
 }
 
@@ -109,7 +112,7 @@ bool NetZeroRouter::add_son_uart(direc d, uint8_t s_id, uint8_t t_id)
     if (mavlink_chan == 0xFF) {
         return false;
     }
-    son[son_count] = connection(true, d, t_id, s_id, mavlink_chan);
+    son[son_count] = connection(true, d, t_id, s_id, mavlink_chan, net_zero_position_from_dir(d));
     son_count++;
     GCS_MAVLINK::set_channel_private(mavlink_chan);
     for (int i = 0; i < 4; i++) {
@@ -139,6 +142,45 @@ uint8_t NetZeroRouter::get_son_count()
     return son_count;
 }
 
+net_zero_position NetZeroRouter::get_self_position() const
+{
+    return self_position;
+}
+
+void NetZeroRouter::send_position_debug() const
+{
+    if (self_position.valid) {
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO,
+                      "Net zero position: sysid=%u pos=(%d,%d)",
+                      gcs().sysid_this_mav(),
+                      (int)self_position.x,
+                      (int)self_position.y);
+        return;
+    }
+    GCS_SEND_TEXT(MAV_SEVERITY_INFO,
+                  "Net zero position: sysid=%u pos=unknown",
+                  gcs().sysid_this_mav());
+}
+
+void NetZeroRouter::init_position_from_sysid()
+{
+    if (gcs().sysid_this_mav() == 1) {
+        self_position = net_zero_position(0, 0, true);
+        return;
+    }
+    self_position = net_zero_position();
+}
+
+bool NetZeroRouter::set_self_position_from_dir(direc d)
+{
+    const net_zero_position pos = net_zero_position_from_dir(d);
+    if (!pos.valid) {
+        return false;
+    }
+    self_position = pos;
+    return true;
+}
+
 NetZeroRouter net_zero_router;
 
 uint16_t SubDroneCache[10][4];
@@ -163,6 +205,56 @@ uint8_t get_mavlink_chan_by_uart(uint8_t uart_id)
         return target_link->get_chan();
     }
     return 0xFF;
+}
+
+uint8_t net_zero_dir_to_protocol(direc d)
+{
+    switch (d) {
+    case front:
+        return 0;
+    case left:
+        return 1;
+    case back:
+        return 2;
+    case right:
+        return 3;
+    case no_dir:
+    default:
+        return 0xFF;
+    }
+}
+
+direc net_zero_dir_from_protocol(uint8_t value)
+{
+    switch (value) {
+    case 0:
+        return front;
+    case 1:
+        return left;
+    case 2:
+        return back;
+    case 3:
+        return right;
+    default:
+        return no_dir;
+    }
+}
+
+net_zero_position net_zero_position_from_dir(direc d)
+{
+    switch (d) {
+    case front:
+        return net_zero_position(0, 1, true);
+    case left:
+        return net_zero_position(-1, 0, true);
+    case back:
+        return net_zero_position(0, -1, true);
+    case right:
+        return net_zero_position(1, 0, true);
+    case no_dir:
+    default:
+        return net_zero_position();
+    }
 }
 
 uint8_t get_uart_id_by_mavlink_chan(uint8_t mavlink_chan)

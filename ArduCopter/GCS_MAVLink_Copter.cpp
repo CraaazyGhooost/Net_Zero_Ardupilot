@@ -1216,9 +1216,21 @@ void GCS_MAVLINK_Copter::handle_message_net_zero_command(const mavlink_message_t
 
     switch(packet.test1){
         case 1: // 收到主机探测帧，回复应答并切换到从机模式
-            // 如果已在 SLAVE 模式或已解锁，无需重复应答，避免主机重复注册
-            if (copter.flightmode->mode_number() == Mode::Number::SLAVE ||
-                AP::arming().is_armed()) {
+            // 已解锁时不接受组合体位置变更
+            if (AP::arming().is_armed()) {
+                break;
+            }
+            {
+                const direc parent_dir = net_zero_dir_from_protocol(packet.test2);
+                const uint8_t serial_id = get_uart_id_by_mavlink_chan(chan);
+                if (net_zero_router.set_father_uart(parent_dir, serial_id, sender_id) &&
+                    net_zero_router.set_self_position_from_dir(parent_dir)) {
+                    const net_zero_position pos = net_zero_router.get_self_position();
+                    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Net zero position: (%d,%d)", (int)pos.x, (int)pos.y);
+                }
+            }
+            // 已在 SLAVE 模式时只更新位置，不重复应答，避免主机重复注册
+            if (copter.flightmode->mode_number() == Mode::Number::SLAVE) {
                 break;
             }
             hal.console->printf("Received probe from chan %u\r\n", chan);
